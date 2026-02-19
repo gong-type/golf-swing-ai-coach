@@ -51,17 +51,61 @@
 - Python >= 3.10
 - NVIDIA GPU（推荐，CPU 也可运行）
 
-### 安装
+### 安装（推荐 uv）
 
 ```bash
 # 克隆仓库
 git clone https://github.com/gong-type/golf-swing-ai-coach.git
 cd golf-swing-ai-coach
 
-# 安装依赖
-pip install rtmlib onnxruntime-gpu opencv-python
-# CPU 用户替换为: pip install rtmlib onnxruntime opencv-python
+# 创建虚拟环境并安装依赖
+uv venv
+uv sync
 ```
+
+默认依赖已包含 `onnxruntime-gpu`。
+
+### Windows 摄像头实时 Demo
+
+```bash
+# 推荐（自动选设备/模式，适合大多数机器）
+uv run python demo_webcam.py --camera 0 --mode auto --device auto --mirror
+
+# 强制用 GPU（需 onnxruntime-gpu + NVIDIA CUDA 环境可用）
+uv run python demo_webcam.py --camera 0 --mode balanced --device cuda --mirror --infer-scale 0.85 --infer-interval 1
+
+# 低配 CPU 流畅参数（优先不卡）
+uv run python demo_webcam.py --camera 0 --mode lightweight --device cpu --infer-scale 0.60 --infer-interval 2 --det-frequency 10
+
+# 快速自检（跑 120 帧后自动退出）
+uv run python demo_webcam.py --camera 0 --mode auto --max-frames 120
+
+# 查看 ONNX Runtime provider（排查 GPU）
+uv run python -c "import onnxruntime as ort; print(ort.get_available_providers())"
+
+# 自定义录制输出目录
+uv run python demo_webcam.py --camera 0 --mode auto --record-dir outputs/records
+```
+
+按键说明：
+- `q` 或 `ESC`：退出
+- `r`：重置阶段和轨迹状态
+- `h`：显示/隐藏 HUD 信息面板
+- `v`：开始/停止录制视频（也可点击左下角 `REC/STOP` 按钮）
+
+界面说明：
+- HUD 信息和提示已改为中文（默认右上角半透明）
+- 当入镜不完整或帧率偏低时，会显示中文提醒
+- 新增 AI 教练提示条：根据实时动作在画面上方居中提示（如“手部需要更高”“完美！”）
+- 窗口放大后画面会自动铺满窗口，避免只显示在左上角
+- 左下角提供录制按钮，录制文件默认保存到 `recordings/`
+
+性能说明：
+- 首次运行会下载模型，速度会明显慢，下载完成后会恢复正常
+- 启动日志会打印 `Provider` 列表，包含 `CUDAExecutionProvider` 才表示已启用 GPU 推理
+- 若出现 `CUDA状态: 不可用（缺少 cudnn64_9.dll）`，请安装 cuDNN 9 并把 DLL 加入系统 `PATH`
+- 低配机器优先使用 `--mode lightweight --infer-interval 2 --infer-scale 0.60`
+- 默认分辨率为 `960x540`（更流畅）；需要更清晰可手动加 `--width 1280 --height 720`
 
 ### 基础使用
 
@@ -118,23 +162,14 @@ golf-swing-ai-coach/
 ├── README.md                   # 项目说明
 ├── PLAN.md                     # 项目计划书（实施方案）
 ├── requirements.txt            # Python 依赖
+├── pyproject.toml              # uv 项目配置
+├── uv.lock                     # uv 锁文件
+├── demo_webcam.py              # Windows 摄像头实时 Demo
 ├── src/
-│   ├── pose_analyzer.py        # 姿态分析核心模块
-│   ├── swing_detector.py       # 挥杆阶段检测
-│   ├── angle_calculator.py     # 关节角度计算
-│   ├── video_processor.py      # 视频处理与骨骼叠加
-│   ├── visualizer.py           # 自定义可视化（高尔夫配色/标注）
-│   └── utils.py                # 工具函数
-├── gui/
-│   ├── app.py                  # Gradio Web 界面
-│   └── qt_app.py               # PyQt 桌面界面
-├── models/                     # 模型权重文件
-├── configs/                    # 配置文件
-├── data/
-│   └── sample_videos/          # 示例挥杆视频
-├── docs/                       # 文档
-│   └── images/                 # 效果截图
-└── tests/                      # 单元测试
+│   ├── __init__.py
+│   ├── pose_analyzer.py        # 姿态分析 + 角度计算 + 简化阶段识别
+│   └── visualizer.py           # 高尔夫风格骨骼与 HUD 绘制
+└── .venv/                      # 本地虚拟环境（运行后生成）
 ```
 
 ## 🔗 参考资源
