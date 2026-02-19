@@ -1,0 +1,22 @@
+# 高尔夫挥杆动作 AI 智能分析系统 - 依赖清单
+
+# 核心依赖
+rtmlib>=0.0.15              # 姿态估计推理库（RTMPose/ViTPose++/RTMW）
+opencv-python>=4.8.0        # 视频处理与可视化
+numpy>=1.24.0               # 数值计算
+
+# 推理后端（二选一）
+onnxruntime-gpu>=1.16.0     # GPU 推理（推荐）
+# onnxruntime>=1.16.0       # CPU 推理（无 GPU 时使用）
+
+# 挥杆阶段检测
+torch>=2.0.0                # GolfDB SwingNet 模型依赖
+torchvision>=0.15.0         # 视频预处理
+
+# GUI 演示
+gradio>=4.0.0               # Web 界面
+
+# 可选依赖
+# openvino                  # OpenVINO 推理后端
+# scipy                     # 轨迹平滑
+# matplotlib                # 角度变化图表
